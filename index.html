@@ -42,6 +42,11 @@
   .chip.stat-on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .spacer { flex: 1; }
   .count-note { font-size: 12px; color: var(--ink-3); }
+  .search { border: 1px solid var(--line); border-radius: 999px; background: transparent; padding: 4px 13px; font-size: 12.5px; color: var(--ink); outline: none; width: 190px; font-family: var(--sans); }
+  .search:focus { border-color: var(--accent); }
+  .search::placeholder { color: var(--ink-3); }
+  .search::-webkit-search-cancel-button { -webkit-appearance: none; height: 13px; width: 13px; border-radius: 50%; background: var(--line) center/7px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1 1l8 8M9 1l-8 8' stroke='%238f887e' stroke-width='1.4'/%3E%3C/svg%3E"); cursor: pointer; }
+  @media (max-width: 720px) { .search { width: 100%; order: 9; } }
 
   /* ---------- 卡片 ---------- */
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0; border-top: 1px solid var(--line); }
@@ -122,6 +127,7 @@
     <span class="spacer"></span>
     <button class="chip" data-stat="want">想喝</button>
     <button class="chip" data-stat="tried">已喝</button>
+    <input id="q" class="search" type="search" placeholder="搜品牌 / 城市 / 招牌 / 摊位…" autocomplete="off">
     <span class="count-note" id="countNote"></span>
   </div>
 
@@ -141,7 +147,7 @@
   try { state = JSON.parse(localStorage.getItem(STATE_KEY) || "{}"); } catch (e) { state = {}; }
   function saveState() { try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch (e) {} }
 
-  var filters = { zone: "all", tag: "", first: false, stat: "" };
+  var filters = { zone: "all", tag: "", first: false, stat: "", q: "" };
 
   // ---------- 渲染 ----------
   var grid = document.getElementById("grid");
@@ -196,6 +202,10 @@
     if (filters.tag && b.tags.indexOf(filters.tag) === -1) return false;
     if (filters.first && !b.first) return false;
     if (filters.stat && state[b.id] !== filters.stat) return false;
+    if (filters.q) {
+      var hay = [b.name, b.city, b.booth, b.honor, b.oneLiner, b.mustTry, b.signature, b.review, (b.tags || []).join(" ")].join(" ").toLowerCase();
+      if (hay.indexOf(filters.q) === -1) return false;
+    }
     return true;
   }
 
@@ -228,6 +238,17 @@
     if (state[id] === "") delete state[id];
     saveState(); applyState(); applyFilters(); renderStats();
   });
+
+  // 搜索：拼音组合期间不过滤，组合结束再应用
+  var qInput = document.getElementById("q");
+  var composing = false;
+  qInput.addEventListener("compositionstart", function () { composing = true; });
+  qInput.addEventListener("compositionend", function () { composing = false; applyQ(); });
+  qInput.addEventListener("input", function () { if (!composing) applyQ(); });
+  function applyQ() {
+    filters.q = qInput.value.trim().toLowerCase();
+    applyFilters();
+  }
 
   document.getElementById("filters").addEventListener("click", function (e) {
     var chip = e.target.closest(".chip"); if (!chip) return;
