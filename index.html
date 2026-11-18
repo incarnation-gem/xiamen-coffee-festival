@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>厦门美好咖啡节 · 38 家品牌图鉴</title>
+<script src="data.js"></script>
+<style>
+  :root {
+    --paper: #faf8f5;
+    --ink: #1c1a17;
+    --ink-2: #57524b;
+    --ink-3: #8f887e;
+    --line: #e7e2da;
+    --line-soft: #efebe4;
+    --accent: #a4522a;
+    --accent-soft: #f3e6dd;
+    --ok: #3d6b4f;
+    --warn: #8a5a2b;
+    --serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", serif;
+    --sans: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.65; }
+
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 20px 80px; }
+
+  /* ---------- 头部 ---------- */
+  header { padding: 44px 0 22px; border-bottom: 1px solid var(--line); }
+  .kicker { font-size: 12px; letter-spacing: .35em; color: var(--accent); margin-bottom: 10px; }
+  h1 { font-family: var(--serif); font-size: 30px; font-weight: 700; letter-spacing: .04em; }
+  .meta { margin-top: 14px; color: var(--ink-2); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+  .meta b { color: var(--ink); font-weight: 600; }
+  .stats { margin-top: 16px; display: flex; gap: 26px; font-size: 13px; color: var(--ink-3); }
+  .stats b { font-family: var(--serif); font-size: 19px; color: var(--ink); font-weight: 700; margin-right: 4px; }
+
+  /* ---------- 筛选 ---------- */
+  .filters { position: sticky; top: 0; z-index: 10; background: var(--paper); border-bottom: 1px solid var(--line); padding: 12px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chip { border: 1px solid var(--line); background: transparent; color: var(--ink-2); border-radius: 999px; padding: 4px 13px; font-size: 12.5px; cursor: pointer; font-family: var(--sans); transition: all .15s; }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .chip.stat-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .spacer { flex: 1; }
+  .count-note { font-size: 12px; color: var(--ink-3); }
+
+  /* ---------- 卡片 ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+  .card { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line-soft); padding: 20px 22px 16px; position: relative; display: flex; flex-direction: column; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } .card { border-right: none; } }
+
+  .card.done { background: linear-gradient(180deg, #f2f6f2, transparent); }
+  .card.skip { opacity: .45; }
+
+  .row1 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .booth { font-family: var(--serif); font-size: 12px; color: #fff; background: var(--ink); padding: 1px 7px; border-radius: 3px; letter-spacing: .05em; white-space: nowrap; }
+  .booth.b-zone { background: var(--accent); }
+  .bname { font-family: var(--serif); font-size: 19px; font-weight: 700; letter-spacing: .02em; }
+  .first-tag { font-size: 11px; color: var(--accent); border: 1px solid currentColor; border-radius: 3px; padding: 0 4px; line-height: 1.5; white-space: nowrap; }
+  .honor { font-size: 11.5px; color: var(--warn); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .honor::before { content: "🏆"; font-size: 11px; }
+  .city { font-size: 12px; color: var(--ink-3); }
+  .oneliner { color: var(--ink-2); margin: 8px 0 10px; font-size: 13.5px; }
+
+  .kv { font-size: 13px; margin: 3px 0; display: flex; gap: 8px; }
+  .kv .k { flex: none; color: var(--ink-3); font-size: 12px; padding-top: 1px; letter-spacing: .08em; }
+  .kv .v { color: var(--ink); }
+  .kv.price .v { font-family: var(--serif); color: var(--accent); }
+
+  details { margin-top: 8px; }
+  summary { cursor: pointer; font-size: 12px; color: var(--ink-3); list-style: none; user-select: none; }
+  summary::before { content: "▸ "; }
+  details[open] summary::before { content: "▾ "; }
+  summary:hover { color: var(--accent); }
+  .deep { padding-top: 6px; }
+
+  .tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+  .tag { font-size: 11px; color: var(--ink-3); background: var(--line-soft); border-radius: 3px; padding: 1px 6px; }
+
+  .foot { display: flex; align-items: center; gap: 6px; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--line-soft); }
+  .act { flex: none; border: 1px solid var(--line); background: transparent; border-radius: 999px; font-size: 12px; padding: 3px 11px; cursor: pointer; color: var(--ink-2); font-family: var(--sans); }
+  .act:hover { border-color: var(--accent); color: var(--accent); }
+  .act.want.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .act.tried.on { background: #eaf1ec; border-color: var(--ok); color: var(--ok); }
+  .act.skipb.on { background: var(--line-soft); color: var(--ink-3); }
+  .xhs-link { margin-left: auto; font-size: 12px; color: var(--ink-3); text-decoration: none; border-bottom: 1px dotted var(--ink-3); }
+  .xhs-link:hover { color: var(--accent); border-color: var(--accent); }
+
+  .caution { margin-top: 6px; font-size: 12.5px; color: var(--warn); background: #faf3e8; border-left: 2px solid #d9b98c; padding: 5px 9px; }
+  footer { margin-top: 40px; color: var(--ink-3); font-size: 12px; line-height: 1.9; border-top: 1px solid var(--line); padding-top: 18px; }
+  footer a { color: var(--ink-2); }
+  .legend { margin-top: 6px; font-size: 12px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">NICENESS COFFEE 2026 · 城市游牧计划 · 厦门站</div>
+    <h1>美好的咖啡 · 品牌图鉴</h1>
+    <div class="meta">
+      <span><b>11.19 – 11.22</b>（周四至周日）</span>
+      <span>每天 <b>11:00 – 20:00</b></span>
+      <span>厦门万象城二期 · 微笑广场</span>
+      <span><b>免票入场</b></span>
+      <span>38 家品牌 · 六成首进厦门</span>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="legend">标记会自动保存在本机（localStorage），换设备不同步。</div>
+  </header>
+
+  <div class="filters" id="filters">
+    <button class="chip on" data-zone="all">全部</button>
+    <button class="chip" data-zone="A">A 区</button>
+    <button class="chip" data-zone="B">B 区</button>
+    <span style="width:1px;height:16px;background:var(--line)"></span>
+    <button class="chip" data-tag="冠军">🏆 冠军阵容</button>
+    <button class="chip" data-tag="意式">🥛 意式/Dirty</button>
+    <button class="chip" data-tag="手冲">☕ 手冲/豆子</button>
+    <button class="chip" data-tag="特调">🍹 特调</button>
+    <button class="chip" data-tag="非咖啡">🍦 非咖啡</button>
+    <span style="width:1px;height:16px;background:var(--line)"></span>
+    <button class="chip" data-first="1">首进厦门</button>
+    <span class="spacer"></span>
+    <button class="chip" data-stat="want">想喝</button>
+    <button class="chip" data-stat="tried">已喝</button>
+    <span class="count-note" id="countNote"></span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    <div>口碑信息全部来自小红书公开笔记聚合（76 篇正文 + 评论区精读，另有 38 组搜索聚合），采集于 2026-11-18 开幕前一天，非亲测；价格多为门店/往站咖啡节档，现场以摊位为准。主推产品出自官方《参展品牌必喝list》。</div>
+    <div style="margin-top:8px">冠军头衔出自主办方官宣帖：WBC/CBC 为世界/中国咖啡师大赛（意式），冲煮、杯测、拼豆、烈酒、MOB 为各专项赛。</div>
+    <div style="margin-top:8px">调研方法与数据口径见仓库 README。</div>
+  </footer>
+</div>
+
+<script>
+  // ---------- 状态 ----------
+  var STATE_KEY = "xmcoffee2026";
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(STATE_KEY) || "{}"); } catch (e) { state = {}; }
+  function saveState() { try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var filters = { zone: "all", tag: "", first: false, stat: "" };
+
+  // ---------- 渲染 ----------
+  var grid = document.getElementById("grid");
+  var cards = {};
+
+  function cardHTML(b) {
+    var h = [];
+    h.push('<div class="card" id="card-' + b.id + '">');
+    h.push('<div class="row1"><span class="booth ' + (b.booth.charAt(0) === "B" ? "b-zone" : "") + '">' + b.booth + '</span>');
+    h.push('<span class="bname">' + b.name + '</span>');
+    if (b.first) h.push('<span class="first-tag">首进</span>');
+    h.push('<span class="city">' + b.city + '</span></div>');
+    if (b.honor) h.push('<div class="honor">' + b.honor + '</div>');
+    h.push('<div class="oneliner">' + b.oneLiner + '</div>');
+    h.push('<div class="kv"><span class="k">主推</span><span class="v">' + b.mustTry + '</span></div>');
+    if (b.price) h.push('<div class="kv price"><span class="k">价格</span><span class="v">' + b.price + '</span></div>');
+    h.push('<details><summary>招牌与口碑</summary><div class="deep">');
+    h.push('<div class="kv"><span class="k">招牌</span><span class="v">' + b.signature + '</span></div>');
+    h.push('<div class="kv"><span class="k">口碑</span><span class="v">' + b.review + '</span></div>');
+    h.push('</div></details>');
+    if (b.caution) h.push('<div class="caution">⚠ ' + b.caution + '</div>');
+    h.push('<div class="tags">' + b.tags.map(function (t) { return '<span class="tag">' + t + '</span>'; }).join("") + '</div>');
+    h.push('<div class="foot">');
+    h.push('<button class="act want" data-id="' + b.id + '" data-stat="want">想喝</button>');
+    h.push('<button class="act tried" data-id="' + b.id + '" data-stat="tried">已喝</button>');
+    h.push('<button class="act skipb" data-id="' + b.id + '" data-stat="skip">跳过</button>');
+    h.push('<a class="xhs-link" target="_blank" rel="noopener" href="https://www.xiaohongshu.com/search_result?keyword=' + encodeURIComponent(b.xhs) + '">小红书口碑 ↗</a>');
+    h.push('</div></div>');
+    return h.join("");
+  }
+
+  function render() {
+    grid.innerHTML = BRANDS.map(cardHTML).join("");
+    BRANDS.forEach(function (b) { cards[b.id] = document.getElementById("card-" + b.id); });
+    applyState(); applyFilters(); renderStats();
+  }
+
+  function applyState() {
+    BRANDS.forEach(function (b) {
+      var el = cards[b.id]; if (!el) return;
+      var st = state[b.id];
+      el.classList.toggle("done", st === "tried");
+      el.classList.toggle("skip", st === "skip");
+      el.querySelectorAll(".act").forEach(function (btn) {
+        btn.classList.toggle("on", btn.dataset.stat === st);
+      });
+    });
+  }
+
+  function matchFilter(b) {
+    if (filters.zone !== "all" && b.booth.charAt(0) !== filters.zone) return false;
+    if (filters.tag && b.tags.indexOf(filters.tag) === -1) return false;
+    if (filters.first && !b.first) return false;
+    if (filters.stat && state[b.id] !== filters.stat) return false;
+    return true;
+  }
+
+  function applyFilters() {
+    var shown = 0;
+    BRANDS.forEach(function (b) {
+      var ok = matchFilter(b);
+      cards[b.id].style.display = ok ? "" : "none";
+      if (ok) shown++;
+    });
+    document.getElementById("countNote").textContent = shown + " / 38 家";
+  }
+
+  function renderStats() {
+    var want = 0, tried = 0, skip = 0;
+    BRANDS.forEach(function (b) {
+      if (state[b.id] === "want") want++;
+      if (state[b.id] === "tried") tried++;
+      if (state[b.id] === "skip") skip++;
+    });
+    document.getElementById("stats").innerHTML =
+      "<span><b>" + want + "</b>想喝</span><span><b>" + tried + "</b>已喝</span><span><b>" + skip + "</b>跳过</span><span><b>" + (38 - tried) + "</b>待探索</span>";
+  }
+
+  // ---------- 交互 ----------
+  grid.addEventListener("click", function (e) {
+    var btn = e.target.closest(".act"); if (!btn) return;
+    var id = btn.dataset.id, st = btn.dataset.stat;
+    state[id] = (state[id] === st) ? "" : st;
+    if (state[id] === "") delete state[id];
+    saveState(); applyState(); applyFilters(); renderStats();
+  });
+
+  document.getElementById("filters").addEventListener("click", function (e) {
+    var chip = e.target.closest(".chip"); if (!chip) return;
+    if (chip.dataset.zone) {
+      filters.zone = chip.dataset.zone;
+      document.querySelectorAll("[data-zone]").forEach(function (c) { c.classList.toggle("on", c === chip); });
+    } else if (chip.dataset.tag) {
+      var on = chip.classList.contains("on");
+      filters.tag = on ? "" : chip.dataset.tag;
+      document.querySelectorAll("[data-tag]").forEach(function (c) { c.classList.toggle("on", !on && c === chip); });
+    } else if (chip.dataset.first) {
+      filters.first = !filters.first;
+      chip.classList.toggle("on", filters.first);
+    } else if (chip.dataset.stat) {
+      var on2 = chip.classList.contains("on");
+      filters.stat = on2 ? "" : chip.dataset.stat;
+      document.querySelectorAll("[data-stat]").forEach(function (c) { c.classList.toggle("on", !on2 && c === chip); });
+    }
+    applyFilters();
+  });
+
+  render();
+</script>
+</body>
+</html>
